@@ -6,21 +6,22 @@ dist: trusty
 branches:
   only:
   - master
+  - coverity_scan
 
 env:
   global:
   - TOOLS_URL=https://github.com/mmatyas/pegasus-frontend/releases/download/alpha1
   - QT_VER=qt592
   - PEGASUS_HOME=/hello/world
+  - secure: "ezcEiSIaD/K6sSJGeGU4/L9xdljKbD0GPu80OaxBgu4mJvLWg3+yHIhNdfJ0pxkGms7Dj5XK20kxr4NRREyo9nh4mXjwoFCt4TiqWMLK9POpQJwihJRdaTn6dmBQXUOKk0Qi6GnfZjDSAYLDLr/KR21o+M6fhd6H/lfOWzFCcHrF6SlV7M3wIaUjbucqUGCgYmDczBANhvTxUXOeHiclGNZSBfDZ9rHRtl9CUPJfw+enpdeG4Bjf0ypgCkKvETHT5yQgsNc11V2fRYquKum+ERAMMspB7jKNTe8Ce901asqEkVbcjlbbqKX2OnhgKrjRpNrePd5rlan5VAdOERj1xpLxtqQ6vEUZwfCCDUk8u1l6Q6l5EZTEJX7YmE3jt19oCWjt5DPOp1jhGOi9CRgNblSkL1uKFq3f82jHw6RFUFRrG6NHVwPld5iKjgbVtgx62Oj7HCVj+0eiX8RS1YXoK4M9yMOtWQHsM28Wsri/4d+mLqHF/Ebzxc28GI4rbQnfHOSmVf87qZQT917aPrPhHjfZWEmljhYACxA8kDq25Oq3FYymsKtdPw5eOUhH4aNHB2x5CrAeYGpYb+Wnbzzkgm9LQ7K8ICvy1pIcexNlesK1/mIkyb7YtUs6g3rqytN3V7ovkuA8WU5JEENPUVJRMT4rshKhQ5RRDLRjns+2otw="
   matrix:
   - TARGET=x11-static
-  - TARGET=rpi1-static CROSS=1
-  - TARGET=rpi2-static CROSS=1
 
 git:
   depth: 100
 
 before_install:
+  - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
   - pushd /tmp
   - wget ${TOOLS_URL}/${QT_VER}_${TARGET}.tgz
   - if [[ -n "$CROSS" ]]; then wget ${TOOLS_URL}/rpi-toolchain.tgz; fi
@@ -42,68 +43,27 @@ before_install:
   - sudo chown travis:travis /opt/pegasus-frontend
   - popd
 
-script:
+before_script:
+  - export PATH="/opt/qt59_${TARGET}_hosttools/bin:$PATH"
   - if [[ $TARGET == x11* ]]; then
-      find -name *.qml -exec /opt/${QT_VER}_${TARGET}/bin/qmllint {} \; ;
+      find -name *.qml -exec qmllint {} \; ;
     fi
   - if [[ $TARGET == *static ]]; then
       ln -s ../frontend src/app/qml-frontend;
       ln -s ../themes/pegasus-grid src/app/qml-theme;
     fi
-  - mkdir build && cd build
-  - /opt/${QT_VER}_${TARGET}_hosttools/bin/qmake ..
-  - make
-  - make install
 
-after_success:
-  - export SUFFIX=$(git describe --always)_${TARGET}
-  - zip -j pegasus-fe_${SUFFIX}.zip
-      /opt/pegasus-frontend/pegasus-fe
-      ../README.md
-      ../LICENSE.md
-  - curl --upload-file
-      pegasus-fe_${SUFFIX}.zip
-      https://transfer.sh/pegasus-fe_${SUFFIX}.zip
-  - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
-  - bash ./upload.sh pegasus-fe_${SUFFIX}.zip
+script:
+  true
 
-matrix:
-  include:
-    # OSX build
-    - os: osx
-      compiler: clang
-      env: null
-      before_install:
-        - brew update
-      install:
-        - brew install qt5
-        - brew link --force qt5
-        - qmake -v
-      script:
-        - mkdir build && cd build
-        - qmake ..
-        - make check
-      after_success:
-        - true
-    # Qt 5.7.1 (for Debian Stretch/Ubuntu Zesty)
-    - env: QT_QPA_PLATFORM=minimal
-      before_install:
-        - sudo add-apt-repository -y ppa:beineri/opt-qt571-trusty
-        - sudo apt-get update
-      install:
-        - sudo apt-get install -y
-            qt57declarative
-            qt57graphicaleffects
-            qt57gamepad
-            qt57imageformats
-            qt57multimedia
-            qt57svg
-            qt57tools
-        - source /opt/qt57/bin/qt57-env.sh
-        - qmake -v
-      script:
-        - mkdir build && cd build
-        - qmake ..
-        - make check
-      after_success:
-        - true
+addons:
+  coverity_scan:
+    project:
+      name: mmatyas/pegasus-frontend
+      version: 1.0
+      description: My Project
+
+    notification_email: mmatyas@inf.u-szeged.hu
+    build_command_prepend: qmake
+    build_command: make
+    branch_pattern: coverity_scan

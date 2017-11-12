@@ -107,6 +107,9 @@ Window {
                 content.enabled = false;
                 rebootDialog.focus = true;
             }
+            onRequestQuit: {
+                pegasus.system.quit();
+            }
         }
     }
 

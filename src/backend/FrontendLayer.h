@@ -40,6 +40,8 @@ public:
     void rebuild(QObject* api);
     void teardown();
 
+    void trimCache();
+
 signals:
     void rebuildComplete();
     void teardownComplete();

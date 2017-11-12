@@ -111,6 +111,10 @@ void setupAsyncGameLaunch(ApiObject& api, FrontendLayer& frontend, ProcessLaunch
 
     QObject::connect(&api, &ApiObject::restoreAfterGame,
                      &frontend, &FrontendLayer::rebuild);
+
+    // TODO: refactor
+    QObject::connect(&api, &ApiObject::qmlCacheTrimRequested,
+                     &frontend, &FrontendLayer::trimCache);
 }
 
 void setupControlsChangeScripts()

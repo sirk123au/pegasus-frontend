@@ -105,6 +105,9 @@ signals:
     // quit/reboot/shutdown
     void appCloseRequested(AppCloseType);
 
+    // partial QML reload
+    void qmlCacheTrimRequested();
+
 public slots:
     // game launch communication
     void onReadyToLaunch();

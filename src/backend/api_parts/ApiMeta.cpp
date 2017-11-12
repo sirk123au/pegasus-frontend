@@ -42,6 +42,8 @@ Meta::Meta(QObject* parent)
     m_log_path += "/lastrun.log";
 }
 
+void Meta::trimQMLCache() { emit qmlCacheTrimRequested(); }
+
 void Meta::onScanStarted()
 {
     m_scanning = true;

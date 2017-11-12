@@ -40,6 +40,8 @@ public:
 
     int gameCount() const { return m_game_count; }
 
+    Q_INVOKABLE void trimQMLCache();
+
 public slots:
     void onScanStarted();
     void onScanCompleted(qint64 elapsedTime);
@@ -50,6 +52,8 @@ signals:
     void loadingChanged();
     void scanningChanged();
     void gameCountChanged();
+
+    void qmlCacheTrimRequested();
 
 private:
     static const QString m_git_revision;

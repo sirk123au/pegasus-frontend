@@ -44,7 +44,7 @@ before_install:
   - popd
 
 before_script:
-  - export PATH="/opt/qt59_${TARGET}_hosttools/bin:$PATH"
+  - export PATH="/opt/${QT_VER}_${TARGET}_hosttools/bin:$PATH"
   - if [[ $TARGET == x11* ]]; then
       find -name *.qml -exec qmllint {} \; ;
     fi
@@ -61,7 +61,7 @@ addons:
     project:
       name: mmatyas/pegasus-frontend
       version: 1.0
-      description: My Project
+      description: Build submitted via Travis CI
 
     notification_email: mmatyas@inf.u-szeged.hu
     build_command_prepend: qmake
